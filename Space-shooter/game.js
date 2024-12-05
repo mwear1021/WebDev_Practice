@@ -70,15 +70,17 @@ function initializeGame() {
 
 // initialize enmemies
 function spawnEnemies() {
-    let xPos = Math.random() * (GAME_WIDTH / 3.5) + 80; // keep enemies on left side
+    let xPos = Math.random() * (GAME_WIDTH / 2.5) + 30; // keep enemies on left side
     let yOffset = -20; // start above the game window
     enemies.push(new Enemy(xPos, yOffset));
 }
 
+// start enemy stream
 function startEnemyStream() {
     setInterval(spawnEnemies, 200); // spawn enemies at regular intervals
 }
 
+// update enemies
 function updateEnemies() {
     enemies.forEach((enemy, index) => {
         enemy.move();
@@ -106,9 +108,25 @@ function update() {
     if (keys['ArrowRight']) player.moveRight();
 
     // update bullets
-    bullets.forEach((bullet, index) => {
+    bullets.forEach((bullet, bulletIndex) => {
         bullet.move();
-        if (bullet.y < 0) bullets.splice(index, 1); // remove bullets off-screen
+
+        // check collision with enemies
+        enemies.forEach((enemy, enemyIndex) => {
+            if (isColliding(bullet, enemy)) {
+                //remove bullet and enemy
+                bullets.splice(bulletIndex, 1);
+                enemies.splice(enemyIndex, 1);
+
+                return;
+            }
+        });
+
+        //remove bullets off screen
+        if (bullet.y < 0) {
+            bullets.splice(bulletIndex, 1);
+            
+        }
     });
 
     // move enemies
@@ -133,7 +151,7 @@ const enemySprite = new Image();
 enemySprite.src = 'sprites\\small-alien.png';
 
 const laserSprite = new Image();
-laserSprite.src = 'sprites\\laser.png';''
+laserSprite.src = 'sprites\\laser.png';
 
 // game loop
 function gameLoop() {
@@ -147,8 +165,19 @@ function gameLoop() {
 function autoFire() {
     setInterval(() => {
         bullets.push(new Bullet(player.x + player.width / 2 - 2.5, player.y));
-    }, 150); // fire a bullet every 200ms (adjust as needed)
+    }, 140); // fire a bullet every x ms (adjust as needed)
 }
+
+// detect collisions
+function isColliding(obj1, obj2) {
+    return (
+        obj1.x < obj2.x + obj2.width &&
+        obj1.x + obj1.width > obj2.x &&
+        obj1.y < obj2.y + obj2.height &&
+        obj1.y + obj1.height > obj2.y
+    );
+}
+
 // initialize and start
 initializeGame();
 autoFire();
